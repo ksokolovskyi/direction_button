@@ -21,7 +21,7 @@ class Button extends StatefulWidget {
 }
 
 class _ButtonState extends State<Button> with TickerProviderStateMixin {
-  final _isOverlayExpanded = ValueNotifier(false);
+  final ValueNotifier<bool> _isOverlayExpanded = ValueNotifier(false);
 
   @override
   void dispose() {
@@ -111,20 +111,22 @@ class _ButtonOverlayState extends State<_ButtonOverlay>
     duration: const Duration(milliseconds: 300),
   );
 
-  late final _expansionAnimation = Tween<double>(begin: 0, end: 1)
-      .chain(CurveTween(curve: Curves.ease))
-      .animate(_expansionController);
+  late final Animation<double> _expansionAnimation = Tween<double>(
+    begin: 0,
+    end: 1,
+  ).chain(CurveTween(curve: Curves.ease)).animate(_expansionController);
 
-  late final _arrowsOpacityAnimation = Tween<double>(begin: 0, end: 1)
-      .chain(CurveTween(curve: const Interval(0, 0.5)))
-      .animate(_expansionController);
+  late final Animation<double> _arrowsOpacityAnimation =
+      Tween<double>(begin: 0, end: 1)
+          .chain(CurveTween(curve: const Interval(0, 0.5)))
+          .animate(_expansionController);
 
   late final _gradientsController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 2000),
   );
 
-  late final _gradientsTranslationAnimation = Tween<double>(
+  late final Animation<double> _gradientsTranslationAnimation = Tween<double>(
     begin: 0,
     end: 0.5,
   ).animate(_gradientsController);
@@ -309,20 +311,20 @@ class _RenderButtonOverlayExpandingBox extends RenderAligningShiftedBox {
   _RenderButtonOverlayExpandingBox({
     required double initialWidth,
     required double expansionFactor,
-  })  : assert(
-          initialWidth >= 0.0,
-          'initialWidth value must not be less then zero',
-        ),
-        assert(
-          expansionFactor >= 0.0 && expansionFactor <= 1.0,
-          'expansionFactor value must be in range [0, 1]',
-        ),
-        _initialWidth = initialWidth,
-        _expansionFactor = expansionFactor,
-        super(
-          alignment: Alignment.centerLeft,
-          textDirection: TextDirection.ltr,
-        );
+  }) : assert(
+         initialWidth >= 0.0,
+         'initialWidth value must not be less then zero',
+       ),
+       assert(
+         expansionFactor >= 0.0 && expansionFactor <= 1.0,
+         'expansionFactor value must be in range [0, 1]',
+       ),
+       _initialWidth = initialWidth,
+       _expansionFactor = expansionFactor,
+       super(
+         alignment: Alignment.centerLeft,
+         textDirection: TextDirection.ltr,
+       );
 
   double get initialWidth => _initialWidth;
   double _initialWidth;
@@ -355,7 +357,8 @@ class _RenderButtonOverlayExpandingBox extends RenderAligningShiftedBox {
     if (constraints.maxWidth < initialWidth) {
       width = constraints.maxWidth;
     } else {
-      width = initialWidth +
+      width =
+          initialWidth +
           (constraints.maxWidth - initialWidth) * _expansionFactor;
     }
 
@@ -403,9 +406,9 @@ class _ArrowsPainter extends CustomPainter {
 
   static const _circleDiameter = 2.0;
   static const _circlesGap = 1.0;
-  static const _arrowWidth = 4 * _circleDiameter + 3 * _circlesGap;
-  static const _arrowTranslation = _arrowWidth * (19 / 11);
-  static const _arrowsGap = _arrowTranslation - _arrowWidth;
+  static const double _arrowWidth = 4 * _circleDiameter + 3 * _circlesGap;
+  static const double _arrowTranslation = _arrowWidth * (19 / 11);
+  static const double _arrowsGap = _arrowTranslation - _arrowWidth;
 
   static const _circleShadow = BoxShadow(
     offset: Offset(0, 0.5),
@@ -431,8 +434,9 @@ class _ArrowsPainter extends CustomPainter {
       stops: _centerGradientStops,
       transform: _TranslationGradientTransform(gradientTranslation.value),
     );
-    final centerGradientShader =
-        centerGradient.createShader(centerGradientRect);
+    final centerGradientShader = centerGradient.createShader(
+      centerGradientRect,
+    );
 
     // The gradient which will be used to paint the inner rows of the arrows.
     final innerGradient = LinearGradient(
@@ -472,11 +476,18 @@ class _ArrowsPainter extends CustomPainter {
     // The opacity of the paints has to be adjusted according to the [opacity]
     // animation value. This will cause the smooth appearance and disappearance
     // of the remaining arrows.
-    outerRowsPaint.color = outerRowsPaint.color.withOpacity(opacity.value);
-    innerRowsPaint.color = innerRowsPaint.color.withOpacity(opacity.value);
-    centerRowsPaint.color = centerRowsPaint.color.withOpacity(opacity.value);
-    circleShadowPaint.color =
-        circleShadowPaint.color.withOpacity(opacity.value);
+    outerRowsPaint.color = outerRowsPaint.color.withValues(
+      alpha: opacity.value,
+    );
+    innerRowsPaint.color = innerRowsPaint.color.withValues(
+      alpha: opacity.value,
+    );
+    centerRowsPaint.color = centerRowsPaint.color.withValues(
+      alpha: opacity.value,
+    );
+    circleShadowPaint.color = circleShadowPaint.color.withValues(
+      alpha: opacity.value,
+    );
 
     // Remaining arrows drawing.
     for (var i = 1; i <= secondaryCount ~/ 2; i++) {
